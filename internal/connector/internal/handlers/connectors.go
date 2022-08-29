@@ -132,6 +132,82 @@ func (h ConnectorsHandler) Create(w http.ResponseWriter, r *http.Request) {
 	handlers.Handle(w, r, cfg, http.StatusAccepted)
 }
 
+func (h ConnectorsHandler) CreateOrUpdate(w http.ResponseWriter, r *http.Request) {
+	user := h.authZService.GetValidationUser(r.Context())
+
+	var resource public.ConnectorRequest
+	tid := mux.Vars(r)["tid"]
+	cfg := &handlers.HandlerConfig{
+
+		MarshalInto: &resource,
+		Validate: []handlers.Validate{
+			handlers.ValidateAsyncEnabled(r, "creating connector"),
+			handlers.Validation("channel", (*string)(&resource.Channel), handlers.WithDefault("stable"), handlers.MaxLen(40)),
+			handlers.Validation("name", &resource.Name, handlers.WithDefault("New Connector"), handlers.MinLen(1), handlers.MaxLen(100)),
+			handlers.Validation("kafka.id", &resource.Kafka.Id, handlers.MinLen(1), handlers.MaxLen(maxKafkaNameLength)),
+			handlers.Validation("kafka.url", &resource.Kafka.Url, handlers.MinLen(1)),
+			handlers.Validation("service_account.client_id", &resource.ServiceAccount.ClientId, handlers.MinLen(1)),
+			handlers.Validation("service_account.client_secret", &resource.ServiceAccount.ClientSecret, handlers.MinLen(1)),
+			handlers.Validation("connector_type_id", &resource.ConnectorTypeId, handlers.MinLen(1), handlers.MaxLen(maxConnectorTypeIdLength)),
+			handlers.Validation("desired_state", (*string)(&resource.DesiredState), handlers.WithDefault("ready"), handlers.IsOneOf(dbapi.ValidDesiredStates...)),
+			validateConnectorRequest(h.connectorTypesService, &resource, tid),
+			handlers.Validation("namespace_id", &resource.NamespaceId,
+				handlers.MaxLen(maxConnectorNamespaceIdLength), user.AuthorizedNamespaceUser(errors.ErrorBadRequest), user.ValidateNamespaceConnectorQuota()),
+		},
+
+		Action: func() (interface{}, *errors.ServiceError) {
+
+			convResource, err := presenters.ConvertConnectorRequest(resource)
+			if err != nil {
+				return nil, err
+			}
+
+			current, err := h.connectorsService.GetByName(r.Context(), convResource.Name, *convResource.NamespaceId)
+			if err != nil {
+				return nil, err
+			}
+
+			convResource.Owner = api.NewID()
+			convResource.Owner = user.UserId()
+			convResource.OrganisationId = user.OrgId()
+
+			if current != nil {
+				convResource.ID = current.ID
+			}
+
+			// namespace id is a required field if unassigned connectors are not supported
+			if !h.connectorsConfig.ConnectorEnableUnassignedConnectors && (convResource.NamespaceId == nil || *convResource.NamespaceId == "") {
+				return nil, errors.MinimumFieldLengthNotReached("namespace_id is not valid. Minimum length 1 is required.")
+			}
+			if err := ValidateConnectorOperation(r.Context(), h.namespaceService, convResource, phase.CreateConnector); err != nil {
+				return nil, err
+			}
+			ct, err := h.connectorTypesService.Get(resource.ConnectorTypeId)
+			if err != nil {
+				return nil, errors.BadRequest("invalid connector type id: %s", resource.ConnectorTypeId)
+			}
+
+			err = moveSecretsToVault(convResource, ct, h.vaultService, true)
+			if err != nil {
+				return nil, err
+			}
+
+			if svcErr := h.connectorsService.Create(r.Context(), convResource); svcErr != nil {
+				return nil, svcErr
+			}
+
+			if err := stripSecretReferences(convResource, ct); err != nil {
+				return nil, err
+			}
+
+			return presenters.PresentConnector(convResource)
+		},
+	}
+
+	// return 202 status accepted
+	handlers.Handle(w, r, cfg, http.StatusAccepted)
+}
+
 func (h ConnectorsHandler) Patch(w http.ResponseWriter, r *http.Request) {
 
 	connectorId := mux.Vars(r)["connector_id"]

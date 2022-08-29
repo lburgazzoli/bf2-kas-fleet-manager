@@ -88,6 +88,7 @@ func (s *options) AddRoutes(mainRouter *mux.Router) error {
 
 	apiV1ConnectorsRouter := apiV1Router.PathPrefix("/kafka_connectors").Subrouter()
 	apiV1ConnectorsRouter.HandleFunc("", s.ConnectorsHandler.Create).Methods(http.MethodPost)
+	apiV1ConnectorsRouter.HandleFunc("", s.ConnectorsHandler.CreateOrUpdate).Methods(http.MethodPut)
 	apiV1ConnectorsRouter.HandleFunc("", s.ConnectorsHandler.List).Methods(http.MethodGet)
 	apiV1ConnectorsRouter.HandleFunc("/{connector_id}", s.ConnectorsHandler.Get).Methods(http.MethodGet)
 	apiV1ConnectorsRouter.HandleFunc("/{connector_id}", s.ConnectorsHandler.Patch).Methods(http.MethodPatch)
@@ -124,6 +125,7 @@ func (s *options) AddRoutes(mainRouter *mux.Router) error {
 	apiV1ConnectorNamespacesRouter.HandleFunc("/{connector_namespace_id}", s.ConnectorNamespaceHandler.Get).Methods(http.MethodGet)
 	if s.ConnectorsConfig.ConnectorNamespaceLifecycleAPI {
 		apiV1ConnectorNamespacesRouter.HandleFunc("", s.ConnectorNamespaceHandler.Create).Methods(http.MethodPost)
+		apiV1ConnectorNamespacesRouter.HandleFunc("", s.ConnectorNamespaceHandler.CreateOrUpdate).Methods(http.MethodPut)
 		apiV1ConnectorNamespacesRouter.HandleFunc("/{connector_namespace_id}", s.ConnectorNamespaceHandler.Update).Methods(http.MethodPatch)
 		apiV1ConnectorNamespacesRouter.HandleFunc("/{connector_namespace_id}", s.ConnectorNamespaceHandler.Delete).Methods(http.MethodDelete)
 	} else {

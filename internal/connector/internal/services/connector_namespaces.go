@@ -26,6 +26,7 @@ import (
 
 type ConnectorNamespaceService interface {
 	Create(ctx context.Context, request *dbapi.ConnectorNamespace) *errors.ServiceError
+	CreateOrUpdate(ctx context.Context, request *dbapi.ConnectorNamespace) *errors.ServiceError
 	Update(ctx context.Context, request *dbapi.ConnectorNamespace) *errors.ServiceError
 	Get(ctx context.Context, namespaceID string) (*dbapi.ConnectorNamespace, *errors.ServiceError)
 	List(ctx context.Context, clusterIDs []string, listArguments *services.ListArguments, gtVersion int64) (dbapi.ConnectorNamespaceList, *api.PagingMeta, *errors.ServiceError)
@@ -136,6 +137,50 @@ func (k *connectorNamespaceService) Create(ctx context.Context, request *dbapi.C
 	}
 
 	return nil
+}
+
+// CreateOrUpdate ---
+// TODO: just a POC, not for production
+func (k *connectorNamespaceService) CreateOrUpdate(ctx context.Context, request *dbapi.ConnectorNamespace) *errors.ServiceError {
+	if err := k.validateAnnotations(request); err != nil {
+		return err
+	}
+
+	dbConn := k.connectionFactory.New()
+	result := &dbapi.ConnectorNamespace{
+		Name: request.Name,
+	}
+
+	dbConn = dbConn.
+		Preload("Annotations").
+		Preload("TenantUser").
+		Preload("TenantOrganisation").
+		Unscoped().
+		First(result)
+
+	if services.IsRecordNotFoundError(dbConn.Error) {
+		request.ID = api.NewID()
+
+		return k.Create(ctx, request)
+	}
+
+	//TODO: as today only the name can be updated so, don't do anything ...
+
+	return k.Update(ctx, result)
+
+	/*
+		TODO: gorm as native support for upsert however it requires a change in the current model to make
+		      name as a key. Too much for the seek fo the POC
+
+			err := dbConn.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "name"}},
+				UpdateAll: true,
+			}).Create(&request).Error
+
+			if err != nil {
+				return services.HandleCreateError("Connector namespace", err)
+			}
+	*/
 }
 
 func (k *connectorNamespaceService) validateAnnotations(request *dbapi.ConnectorNamespace) *errors.ServiceError {

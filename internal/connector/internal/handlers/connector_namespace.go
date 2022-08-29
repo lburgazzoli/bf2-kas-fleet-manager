@@ -89,6 +89,53 @@ func (h *ConnectorNamespaceHandler) Create(w http.ResponseWriter, r *http.Reques
 	handlers.Handle(w, r, cfg, http.StatusCreated)
 }
 
+func (h *ConnectorNamespaceHandler) CreateOrUpdate(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+	user := h.AuthZService.GetValidationUser(ctx)
+
+	var resource public.ConnectorNamespaceRequest
+	cfg := &handlers.HandlerConfig{
+		MarshalInto: &resource,
+		Validate: []handlers.Validate{
+			handlers.Validation("name", &resource.Name, handlers.WithDefault(generateNamespaceName()), handlers.MaxLen(maxConnectorNamespaceNameLength), handlers.Matches(namespaceNamePattern)),
+			handlers.Validation("cluster_id", &resource.ClusterId, handlers.MinLen(1), handlers.MaxLen(maxConnectorClusterIdLength), user.AuthorizedClusterUser()),
+		},
+		Action: func() (interface{}, *errors.ServiceError) {
+
+			// validate tenant kind
+			if _, ok := presenters.AllNamespaceTenantKinds[string(resource.Kind)]; !ok {
+				return nil, coreservices.HandleCreateError("connector namespace",
+					errors.MinimumFieldLengthNotReached("%s is not valid. Must be one of: [%s, %s]", "kind",
+						public.CONNECTORNAMESPACETENANTKIND_USER, public.CONNECTORNAMESPACETENANTKIND_ORGANISATION))
+			}
+
+			userID := user.UserId()
+			organisationId := user.OrgId()
+
+			// validate that it's an org admin user for organization tenant namespace
+			if resource.Kind == public.CONNECTORNAMESPACETENANTKIND_ORGANISATION {
+				if !user.IsOrgAdmin() {
+					return nil, errors.Unauthorized("user not authorized")
+				}
+			}
+
+			convResource, serr := presenters.ConvertConnectorNamespaceRequest(&resource, userID, organisationId)
+			if serr != nil {
+				return nil, serr
+			}
+
+			if err := h.Service.CreateOrUpdate(ctx, convResource); err != nil {
+				return nil, err
+			}
+			return presenters.PresentConnectorNamespace(convResource, h.QuotaConfig), nil
+		},
+	}
+
+	// return 201 status created
+	handlers.Handle(w, r, cfg, http.StatusCreated)
+}
+
 func (h *ConnectorNamespaceHandler) CreateEvaluation(w http.ResponseWriter, r *http.Request) {
 	user := h.AuthZService.GetValidationUser(r.Context())
 

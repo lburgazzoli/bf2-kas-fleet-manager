@@ -56,6 +56,7 @@ func init() {
 		ctx.Step(`^the "(.*)" selection from the response should match "([^"]*)"$`, s.theSelectionFromTheResponseShouldMatch)
 		ctx.Step(`^the response header "([^"]*)" should match "([^"]*)"$`, s.theResponseHeaderShouldMatch)
 		ctx.Step(`^the "([^"]*)" selection from the response should match json:$`, s.theSelectionFromTheResponseShouldMatchJson)
+		ctx.Step(`^log the response$`, s.logTheResponse)
 	})
 }
 
@@ -220,4 +221,11 @@ func (s *TestScenario) theSelectionFromTheResponseShouldMatchJson(selector strin
 		return s.JsonMustMatch(string(actual), expected.Content, true)
 	}
 	return fmt.Errorf("expected JSON does not have node that matches selector: %s", selector)
+}
+
+func (s *TestScenario) logTheResponse() error {
+	session := s.Session()
+	fmt.Println(string(session.RespBytes))
+
+	return nil
 }

@@ -29,6 +29,7 @@ import (
 type ConnectorsService interface {
 	Create(ctx context.Context, resource *dbapi.Connector) *errors.ServiceError
 	Get(ctx context.Context, id string, tid string) (*dbapi.ConnectorWithConditions, *errors.ServiceError)
+	GetByName(ctx context.Context, name string, namespace string) (*dbapi.Connector, *errors.ServiceError)
 	List(ctx context.Context, listArgs *services.ListArguments, clusterId string) (dbapi.ConnectorWithConditionsList, *api.PagingMeta, *errors.ServiceError)
 	Update(ctx context.Context, resource *dbapi.Connector) *errors.ServiceError
 	SaveStatus(ctx context.Context, resource dbapi.ConnectorStatus) *errors.ServiceError
@@ -124,6 +125,37 @@ func (k *connectorsService) Get(ctx context.Context, id string, tid string) (*db
 	if resource.DeletedAt.Valid {
 		return nil, services.HandleGoneError("Connector", "id", id)
 	}
+	return &resource, nil
+}
+
+// GetByName ---
+// TODO: POC
+func (k *connectorsService) GetByName(ctx context.Context, name string, namespace string) (*dbapi.Connector, *errors.ServiceError) {
+	if name == "" {
+		return nil, errors.Validation("connector name is undefined")
+	}
+	if namespace == "" {
+		return nil, errors.Validation("connector namespace is undefined")
+	}
+
+	var resource dbapi.Connector
+
+	dbConn := k.connectionFactory.New()
+	dbConn = dbConn.Model(&dbapi.Connector{})
+	dbConn = dbConn.Where("name = ? AND namespace_id = ?", name, namespace)
+	dbConn = dbConn.Limit(1)
+
+	if err := dbConn.Unscoped().First(&resource).Error; err != nil {
+		if services.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
+		return nil, services.HandleGetError("Connector", "id", name, err)
+	}
+	if resource.DeletedAt.Valid {
+		return nil, services.HandleGoneError("Connector", "id", name)
+	}
+
 	return &resource, nil
 }
 
