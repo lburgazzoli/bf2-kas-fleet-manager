@@ -167,7 +167,7 @@ func (h ConnectorsHandler) CreateOrUpdate(w http.ResponseWriter, r *http.Request
 				return nil, err
 			}
 
-			convResource.Owner = api.NewID()
+			convResource.ID = api.NewID()
 			convResource.Owner = user.UserId()
 			convResource.OrganisationId = user.OrgId()
 
