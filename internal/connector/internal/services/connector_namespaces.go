@@ -147,16 +147,10 @@ func (k *connectorNamespaceService) CreateOrUpdate(ctx context.Context, request 
 	}
 
 	dbConn := k.connectionFactory.New()
-	result := &dbapi.ConnectorNamespace{
-		Name: request.Name,
-	}
 
-	dbConn = dbConn.
-		Preload("Annotations").
-		Preload("TenantUser").
-		Preload("TenantOrganisation").
-		Unscoped().
-		First(result)
+	var result dbapi.ConnectorNamespace
+
+	dbConn = dbConn.Where("name = ? AND cluster_id = ?", request.Name, request.ClusterId).First(&result)
 
 	if services.IsRecordNotFoundError(dbConn.Error) {
 		request.ID = api.NewID()
@@ -166,7 +160,11 @@ func (k *connectorNamespaceService) CreateOrUpdate(ctx context.Context, request 
 
 	//TODO: as today only the name can be updated so, don't do anything ...
 
-	return k.Update(ctx, result)
+	se := k.Update(ctx, &result)
+
+	*request = result
+
+	return se
 
 	/*
 		TODO: gorm as native support for upsert however it requires a change in the current model to make

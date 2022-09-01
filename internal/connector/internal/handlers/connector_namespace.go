@@ -91,6 +91,8 @@ func (h *ConnectorNamespaceHandler) Create(w http.ResponseWriter, r *http.Reques
 
 func (h *ConnectorNamespaceHandler) CreateOrUpdate(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println(">>>>>  ConnectorNamespaceHandler::CreateOrUpdate <<<<<< ")
+
 	ctx := r.Context()
 	user := h.AuthZService.GetValidationUser(ctx)
 
