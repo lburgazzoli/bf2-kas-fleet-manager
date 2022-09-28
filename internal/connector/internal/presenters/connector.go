@@ -166,6 +166,10 @@ func PresentConnector(from *dbapi.Connector) (public.Connector, *errors.ServiceE
 			Id:  from.Kafka.KafkaID,
 			Url: from.Kafka.BootstrapServer,
 		},
+		Knative: public.KnativeConnectionSettings{
+			Kind: from.Knative.Kind,
+			Name: from.Knative.Name,
+		},
 		SchemaRegistry: public.SchemaRegistryConnectionSettings{
 			Id:  from.SchemaRegistry.SchemaRegistryID,
 			Url: from.SchemaRegistry.Url,

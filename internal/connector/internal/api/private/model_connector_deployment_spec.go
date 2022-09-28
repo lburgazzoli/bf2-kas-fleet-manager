@@ -13,6 +13,7 @@ package private
 type ConnectorDeploymentSpec struct {
 	ServiceAccount           ServiceAccount                   `json:"service_account,omitempty"`
 	Kafka                    KafkaConnectionSettings          `json:"kafka,omitempty"`
+	Knative                  KnativeConnectionSettings        `json:"knative,omitempty"`
 	SchemaRegistry           SchemaRegistryConnectionSettings `json:"schema_registry,omitempty"`
 	ConnectorId              string                           `json:"connector_id,omitempty"`
 	ConnectorResourceVersion int64                            `json:"connector_resource_version,omitempty"`

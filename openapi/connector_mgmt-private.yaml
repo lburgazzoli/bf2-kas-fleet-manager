@@ -475,6 +475,8 @@ components:
           $ref: 'connector_mgmt.yaml#/components/schemas/ServiceAccount'
         kafka:
           $ref: 'connector_mgmt.yaml#/components/schemas/KafkaConnectionSettings'
+        knative:
+          $ref: 'connector_mgmt.yaml#/components/schemas/KnativeConnectionSettings'
         schema_registry:
           $ref: "connector_mgmt.yaml#/components/schemas/SchemaRegistryConnectionSettings"
         connector_id:
