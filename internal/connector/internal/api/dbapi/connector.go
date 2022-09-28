@@ -60,6 +60,7 @@ type Connector struct {
 	DesiredState    ConnectorDesiredState
 	Channel         string
 	Kafka           KafkaConnectionSettings          `gorm:"embedded;embeddedPrefix:kafka_"`
+	Knative         KnativeConnectionSettings        `gorm:"embedded;embeddedPrefix:knative_"`
 	SchemaRegistry  SchemaRegistryConnectionSettings `gorm:"embedded;embeddedPrefix:schema_registry_"`
 	ServiceAccount  ServiceAccount                   `gorm:"embedded;embeddedPrefix:service_account_"`
 
@@ -111,6 +112,11 @@ type ConnectorDeploymentStatus struct {
 type KafkaConnectionSettings struct {
 	KafkaID         string `gorm:"column:id"`
 	BootstrapServer string
+}
+
+type KnativeConnectionSettings struct {
+	Kind string
+	Name string
 }
 
 type SchemaRegistryConnectionSettings struct {

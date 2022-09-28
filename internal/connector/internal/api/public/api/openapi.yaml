@@ -2017,6 +2017,21 @@ components:
       allOf:
       - $ref: '#/components/schemas/ObjectReference'
       - $ref: '#/components/schemas/VersionMetadata_allOf'
+    KnativeConnectionSettings:
+      description: Holds the configuration to connect to a Knative service.
+      properties:
+        kind:
+          enum:
+          - channel
+          - endpoint
+          - broker
+          type: string
+        name:
+          type: string
+      required:
+      - kind
+      - name
+      type: object
     KafkaConnectionSettings:
       allOf:
       - $ref: '#/components/schemas/ServiceConnectionSettings'
@@ -2101,6 +2116,8 @@ components:
       properties:
         kafka:
           $ref: '#/components/schemas/KafkaConnectionSettings'
+        knative:
+          $ref: '#/components/schemas/KnativeConnectionSettings'
         service_account:
           $ref: '#/components/schemas/ServiceAccount'
         schema_registry:
@@ -2109,7 +2126,6 @@ components:
           type: object
       required:
       - connector
-      - kafka
       - service_account
     ConnectorRequestMeta:
       properties:

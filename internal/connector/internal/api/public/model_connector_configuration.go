@@ -12,7 +12,8 @@ package public
 
 // ConnectorConfiguration struct for ConnectorConfiguration
 type ConnectorConfiguration struct {
-	Kafka          KafkaConnectionSettings          `json:"kafka"`
+	Kafka          KafkaConnectionSettings          `json:"kafka,omitempty"`
+	Knative        KnativeConnectionSettings        `json:"knative,omitempty"`
 	ServiceAccount ServiceAccount                   `json:"service_account"`
 	SchemaRegistry SchemaRegistryConnectionSettings `json:"schema_registry,omitempty"`
 	Connector      map[string]interface{}           `json:"connector"`
