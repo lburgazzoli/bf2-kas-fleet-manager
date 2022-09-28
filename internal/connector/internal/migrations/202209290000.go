@@ -10,19 +10,25 @@ import (
 	"github.com/go-gormigrate/gormigrate/v2"
 )
 
-func addConnectorKnativeConfig(migrationId string) *gormigrate.Migration {
+func addKnativeConfig(migrationId string) *gormigrate.Migration {
 
 	type KnativeConnectionSettings struct {
-		Kind string
-		Name string
+		APIVersion string `gorm:"column:api_version"`
+		Kind       string
+		Name       string
 	}
 
 	type Connector struct {
 		Knative KnativeConnectionSettings `gorm:"embedded;embeddedPrefix:knative_"`
 	}
 
+	type ConnectorDeployment struct {
+		Connector Connector
+	}
+
 	return db.CreateMigrationFromActions(migrationId,
 		// add platform status
 		db.AddTableColumnsAction(&Connector{}),
+		db.AddTableColumnsAction(&ConnectorDeployment{}),
 	)
 }
