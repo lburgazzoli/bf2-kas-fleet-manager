@@ -1125,15 +1125,14 @@ components:
       description: Holds the configuration to connect to a Knative service.
       type: object
       required:
+        - apiVersion
         - kind
         - name
       properties:
+        apiVersion:
+          type: string
         kind:
           type: string
-          enum:
-            - channel
-            - endpoint
-            - broker
         name:
           type: string
 

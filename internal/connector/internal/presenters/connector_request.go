@@ -31,8 +31,9 @@ func ConvertConnectorRequest(from public.ConnectorRequest) (*dbapi.Connector, *e
 			BootstrapServer: from.Kafka.Url,
 		},
 		Knative: dbapi.KnativeConnectionSettings{
-			Kind: from.Knative.Kind,
-			Name: from.Knative.Name,
+			APIVersion: from.Knative.ApiVersion,
+			Kind:       from.Knative.Kind,
+			Name:       from.Knative.Name,
 		},
 		SchemaRegistry: dbapi.SchemaRegistryConnectionSettings{
 			SchemaRegistryID: from.SchemaRegistry.Id,

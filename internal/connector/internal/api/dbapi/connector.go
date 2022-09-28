@@ -115,8 +115,9 @@ type KafkaConnectionSettings struct {
 }
 
 type KnativeConnectionSettings struct {
-	Kind string
-	Name string
+	APIVersion string `gorm:"column:api_version"`
+	Kind       string
+	Name       string
 }
 
 type SchemaRegistryConnectionSettings struct {

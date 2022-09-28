@@ -11,6 +11,7 @@ package private
 
 // KnativeConnectionSettings Holds the configuration to connect to a Knative service.
 type KnativeConnectionSettings struct {
-	Kind string `json:"kind"`
-	Name string `json:"name"`
+	ApiVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
 }

@@ -2020,15 +2020,14 @@ components:
     KnativeConnectionSettings:
       description: Holds the configuration to connect to a Knative service.
       properties:
+        apiVersion:
+          type: string
         kind:
-          enum:
-          - channel
-          - endpoint
-          - broker
           type: string
         name:
           type: string
       required:
+      - apiVersion
       - kind
       - name
       type: object
