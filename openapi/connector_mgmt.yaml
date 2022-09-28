@@ -1121,21 +1121,31 @@ components:
     # Services
     #
 
+    KnativeConnectionSettings:
+      description: Holds the configuration to connect to a Knative service.
+      type: object
+      required:
+        - kind
+        - name
+      properties:
+        kind:
+          type: string
+          enum:
+            - channel
+            - endpoint
+            - broker
+        name:
+          type: string
+
     KafkaConnectionSettings:
       description: Holds the configuration to connect to a Kafka Instance.
       allOf:
         - $ref: "#/components/schemas/ServiceConnectionSettings"
-        # kafka specific properties
-        #- type: object
-        #  properties:
 
     SchemaRegistryConnectionSettings:
       description: Holds the configuration to connect to a Schem Registry Instance.
       allOf:
         - $ref: "#/components/schemas/ServiceConnectionSettings"
-        # schema registry specific properties
-        #- type: object
-        #  properties:
 
     #
     # Addons
@@ -1241,12 +1251,15 @@ components:
 
     ConnectorConfiguration:
       required:
-        - kafka
+        # disabled as oneOf does not seem to work properly with the current openapi generator
+        #- kafka
         - service_account
         - connector
       properties:
         kafka:
           $ref: "#/components/schemas/KafkaConnectionSettings"
+        knative:
+          $ref: "#/components/schemas/KnativeConnectionSettings"
         service_account:
           $ref: '#/components/schemas/ServiceAccount'
         schema_registry:
