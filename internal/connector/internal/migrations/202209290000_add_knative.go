@@ -22,13 +22,8 @@ func addKnativeConfig(migrationId string) *gormigrate.Migration {
 		Knative KnativeConnectionSettings `gorm:"embedded;embeddedPrefix:knative_"`
 	}
 
-	type ConnectorDeployment struct {
-		Connector Connector
-	}
-
 	return db.CreateMigrationFromActions(migrationId,
 		// add platform status
 		db.AddTableColumnsAction(&Connector{}),
-		db.AddTableColumnsAction(&ConnectorDeployment{}),
 	)
 }
