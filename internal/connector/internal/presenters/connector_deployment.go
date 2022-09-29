@@ -69,8 +69,9 @@ func PresentConnectorDeployment(from dbapi.ConnectorDeployment, resolvedSecrets 
 				Url: presentedConnector.Kafka.Url,
 			},
 			Knative: private.KnativeConnectionSettings{
-				Kind: presentedConnector.Knative.Kind,
-				Name: presentedConnector.Knative.Name,
+				ApiVersion: presentedConnector.Knative.ApiVersion,
+				Kind:       presentedConnector.Knative.Kind,
+				Name:       presentedConnector.Knative.Name,
 			},
 			SchemaRegistry: private.SchemaRegistryConnectionSettings{
 				Id:  presentedConnector.SchemaRegistry.Id,
